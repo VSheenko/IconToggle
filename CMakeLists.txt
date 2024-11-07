@@ -14,9 +14,17 @@ find_package(Qt6 COMPONENTS
   Widgets
   REQUIRED)
 
-# -------- IconToggle --------
+# --------   IconToggle   --------
 
+add_executable(IconToggle
+        sources/IconToggle.cpp
+        headers/IconToggle.h
+)
 
+target_include_directories(IconToggle PRIVATE
+        headers
+        sources
+)
 
 # -------- SettingsWindow --------
 set(EXEC_SETTINGS_MENU SettingsMenu)

@@ -9,7 +9,6 @@ Q_OBJECT
 
 public:
     explicit SettingsWindow(QWidget *parent = nullptr);
-
     ~SettingsWindow();
 
 private:
