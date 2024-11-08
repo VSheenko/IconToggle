@@ -19,6 +19,7 @@ find_package(Qt6 COMPONENTS
 add_executable(IconToggle
         sources/IconToggle.cpp
         headers/IconToggle.h
+        headers/TrayHeader.h
 )
 
 target_include_directories(IconToggle PRIVATE
