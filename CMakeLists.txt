@@ -26,6 +26,10 @@ target_include_directories(IconToggle PRIVATE
         sources
 )
 
+set_target_properties(IconToggle PROPERTIES
+        COMPILE_FLAGS "-Os -s"
+        LINK_FLAGS "-mwindows -Wl,--gc-sections"
+)
 # -------- SettingsWindow --------
 set(EXEC_SETTINGS_MENU SettingsMenu)
 set(SETTINGS_MENU_SOURCES

@@ -2,7 +2,7 @@
 #define ICONTOGGLE_ICONTOGGLE_H
 
 #include <windows.h>
-#include <bitset>
+#include <commctrl.h>
 
 HWND FindShellViewWindow() {
     HWND hDesktop = GetDesktopWindow();
@@ -25,18 +25,50 @@ HWND FindShellViewWindow() {
     return reinterpret_cast<HWND>(threadID);
 }
 
-// TODO: Ему глубоко плевать, что под курсором может быть ярлык, а не рабочий стол
-BOOL IsDesktop (HWND hWnd) {
-    char windowTitle[256];
-    GetWindowText(hWnd, windowTitle, sizeof(windowTitle));
-
-    return hWnd == FindShellViewWindow() || strcmp(windowTitle, "FolderView") == 0;
+BOOL IsShortcut (const HWND& hWndLV) {
+    return ListView_GetHotItem(hWndLV) != -1;
 }
 
-HWND GetHWNDFromCursor() {
-    POINT pt;
-    GetCursorPos(&pt);
-    return WindowFromPoint(pt);
+BOOL IsDesktop (const HWND& hWnd) {
+    HWND hShellView = FindShellViewWindow();
+    HWND hSysListView = GetWindow(hShellView, GW_CHILD);
+
+    if (IsShortcut(hSysListView))
+        return FALSE;
+
+    return hWnd == hShellView || hWnd == hSysListView;
+}
+
+VOID DoubleClickHandler () {
+    SendMessage(FindShellViewWindow(), WM_COMMAND, MAKEWPARAM(29698, 0), NULL);
+}
+
+HHOOK hHook = nullptr;
+DWORD lastClickTime = 0;
+DWORD lastDoubleClickTime = 0;
+
+LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode != HC_ACTION)
+        return CallNextHookEx(hHook, nCode, wParam, lParam);
+
+    if (wParam == WM_LBUTTONUP) {
+        if (!IsDesktop(WindowFromPoint(*(POINT*)lParam))) {
+            lastDoubleClickTime = 0;
+            return CallNextHookEx(hHook, nCode, wParam, lParam);
+        }
+
+        DWORD currentTime = GetTickCount();
+        if (currentTime - lastClickTime <= GetDoubleClickTime() &&
+            currentTime - lastDoubleClickTime > GetDoubleClickTime()) {
+
+            DoubleClickHandler();
+
+            lastDoubleClickTime = currentTime;
+        }
+        lastClickTime = currentTime;
+    }
+
+    return CallNextHookEx(hHook, nCode, wParam, lParam);
 }
 
 #endif //ICONTOGGLE_ICONTOGGLE_H
