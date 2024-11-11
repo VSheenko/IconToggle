@@ -20,12 +20,17 @@ add_executable(IconToggle
         sources/IconToggle.cpp
         headers/IconToggle.h
         headers/TrayHeader.h
+        headers/resource.h
 )
 
 target_include_directories(IconToggle PRIVATE
         headers
         sources
+        resources
 )
+
+target_sources(IconToggle PRIVATE
+        resources/resources.rc)
 
 set_target_properties(IconToggle PROPERTIES
         COMPILE_FLAGS "-Os -s"

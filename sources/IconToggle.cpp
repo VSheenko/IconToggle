@@ -2,8 +2,11 @@
 #include "TrayHeader.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
-    HWND hwnd = InitInstance(hInstance);
-    InitTrayWnd(hwnd);
+    GeneralHWnd = InitInstance(hInstance);
+    InitTrayWnd(GeneralHWnd);
+    UpdateTrayIcon(GetWindow(FindShellViewWindow(), GW_CHILD));
+
+    SetTimer(GeneralHWnd, TIMER_ID, TIMER_INTERVAL, NULL);
 
     hHook = SetWindowsHookEx(WH_MOUSE_LL,
                              MouseHookProc,
@@ -12,8 +15,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     MSG msg;
     while (GetMessage(&msg, nullptr, 0, 0)) {
-     TranslateMessage(&msg);
-     DispatchMessage(&msg);
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
     }
 
     UnhookWindowsHookEx(hHook);
