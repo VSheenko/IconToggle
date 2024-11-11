@@ -6,7 +6,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     InitTrayWnd(GeneralHWnd);
     UpdateTrayIcon(GetWindow(FindShellViewWindow(), GW_CHILD));
 
-    SetTimer(GeneralHWnd, TIMER_ID, TIMER_INTERVAL, NULL);
+    SetTimer(GeneralHWnd, TIMER_ID, CHECK_INTERVAL, NULL);
 
     hHook = SetWindowsHookEx(WH_MOUSE_LL,
                              MouseHookProc,

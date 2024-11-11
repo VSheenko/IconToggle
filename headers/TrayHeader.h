@@ -3,7 +3,7 @@
 
 #include "resource.h"
 #include <windows.h>
-#include <iostream>
+
 
 #define ID_TRAY_APP_ICON 1001
 #define WM_TRAY_WND (WM_USER + 1)

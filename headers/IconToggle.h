@@ -7,14 +7,14 @@
 
 #define WIDTH_DISPLAY_INTERVAL  100
 #define HEIGHT_DISPLAY_INTERVAL 50
+#define TIMER_ID 1
+#define TIMER_AUTO_HIDE_ID 2
+#define CHECK_INTERVAL 1000
 
-bool           timerActivated = false;
-bool           autoHided = false;
-HWND           GeneralHWnd;
-const UINT_PTR TIMER_ID = 1;
-const UINT_PTR TIMER_AUTO_HIDE_ID = 2;
-const int      TIMER_INTERVAL = 1000; // Таймер для проверки состояния рабочего стола
-int            TIMER_INTERVAL_AUTO_HIDE = 5000; // Таймер для автоматического скрытия иконки
+bool    timerActivated = false;
+bool    autoHided = false;
+HWND    GeneralHWnd;
+int     TIMER_INTERVAL_AUTO_HIDE = 5000; // Таймер для автоматического скрытия иконки
 
 VOID    EXIT();
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -25,6 +25,8 @@ BOOL    IsClearDesktop();
 HWND    FindShellViewWindow();
 BOOL    IsDesktop(const HWND&);
 BOOL    IsShortcut(const HWND&);
+VOID    StartTimerAutoHide();
+VOID    StopTimerAutoHide();
 VOID    DoubleClickHandler();
 LRESULT CALLBACK MouseHookProc(int, WPARAM, LPARAM);
 
@@ -93,41 +95,61 @@ BOOL IsClearDesktop() {
 HHOOK hHook = nullptr;
 DWORD lastClickTime = 0;
 DWORD lastDoubleClickTime = 0;
+POINT lastPoint = {0};
 
 LRESULT CALLBACK MouseHookProc(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode != HC_ACTION)
         return CallNextHookEx(hHook, nCode, wParam, lParam);
 
     if (wParam == WM_LBUTTONUP) {
-        if (!IsDesktop(WindowFromPoint(*(POINT*)lParam))) {
-            lastDoubleClickTime = 0;
+        POINT curPoint = *(POINT*)lParam;
+
+        if (!IsDesktop(WindowFromPoint(curPoint))) {
             return CallNextHookEx(hHook, nCode, wParam, lParam);
         }
 
         DWORD currentTime = GetTickCount();
         if (currentTime - lastClickTime <= GetDoubleClickTime() &&
-            currentTime - lastDoubleClickTime > GetDoubleClickTime()) {
+            currentTime - lastDoubleClickTime > GetDoubleClickTime() &&
+            lastPoint.x == curPoint.x && lastPoint.y == curPoint.y) {
 
             DoubleClickHandler();
 
             lastDoubleClickTime = currentTime;
         }
         lastClickTime = currentTime;
+        lastPoint = curPoint;
     }
 
      if (autoHided && wParam == WM_MOUSEMOVE) {
         AutoShowIcon(FindShellViewWindow());
         UpdateTrayIcon(GetWindow(FindShellViewWindow(), GW_CHILD));
-
-        if (timerActivated) {
-            KillTimer(GeneralHWnd, TIMER_AUTO_HIDE_ID);
-            timerActivated = false;
-        }
     }
+
+     if (wParam == WM_MOUSEMOVE) {
+         StopTimerAutoHide();
+     }
 
     return CallNextHookEx(hHook, nCode, wParam, lParam);
 }
 
+
+
+VOID StartTimerAutoHide() {
+    if (timerActivated || !TIMER_INTERVAL_AUTO_HIDE || !isVisibility)
+        return;
+
+    SetTimer(GeneralHWnd, TIMER_AUTO_HIDE_ID, TIMER_INTERVAL_AUTO_HIDE, NULL);
+    timerActivated = true;
+}
+
+VOID StopTimerAutoHide() {
+    if (!timerActivated)
+        return;
+
+    KillTimer(GeneralHWnd, TIMER_AUTO_HIDE_ID);
+    timerActivated = false;
+}
 
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
@@ -162,35 +184,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
             if (wparam == 1) {
                 UpdateTrayIcon(GetWindow(FindShellViewWindow(), GW_CHILD));
 
-                if (!isVisibility) {
-                    if (timerActivated) {
-                        KillTimer(GeneralHWnd, TIMER_AUTO_HIDE_ID);
-                        timerActivated = false;
-                    }
-
-                    return DefWindowProc(hwnd, msg, wparam, lparam);
-                }
-
-                if (!TIMER_INTERVAL_AUTO_HIDE || autoHided || !IsClearDesktop()) {
-                    if (timerActivated) {
-                        KillTimer(GeneralHWnd, TIMER_AUTO_HIDE_ID);
-                        timerActivated = false;
-                    }
-
-                    return DefWindowProc(hwnd, msg, wparam, lparam);
-                }
-
-                if (!timerActivated) {
-                    SetTimer(GeneralHWnd, TIMER_AUTO_HIDE_ID, TIMER_INTERVAL_AUTO_HIDE, NULL);
-                    timerActivated = true;
-                }
+                if (IsClearDesktop())
+                    StartTimerAutoHide();
+                else
+                    StopTimerAutoHide();
             }
             else if (wparam == 2) {
-                KillTimer(GeneralHWnd, TIMER_AUTO_HIDE_ID);
-                timerActivated = false;
-
                 AutoHideIcon(FindShellViewWindow());
-                UpdateTrayIcon(GetWindow(FindShellViewWindow(), GW_CHILD));
+                StopTimerAutoHide();
             }
             break;
 
