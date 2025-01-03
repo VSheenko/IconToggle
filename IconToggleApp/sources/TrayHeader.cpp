@@ -1,26 +1,10 @@
-#ifndef ICONTOGGLE_TRAYHEADER_H
-#define ICONTOGGLE_TRAYHEADER_H
+#include "TrayHeader.h"
 
-#include "resource.h"
-#include <windows.h>
+TrayHeader::TrayHeader(HWND const &hWnd, const char* className) {
+    InitTrayWnd(hWnd, className);
+}
 
-
-#define ID_TRAY_APP_ICON 1001
-#define WM_TRAY_WND (WM_USER + 1)
-#define ID_TRAY_EXIT 2001
-#define ID_TRAY_SETTINGS 2002
-
-
-NOTIFYICONDATA nid;
-const char     CLASS_NAME[] = "IconToggle";
-bool           isVisibility = true;
-
-BOOL    InitTrayWnd(const HWND&);
-VOID    UpdateTrayIcon(const HWND& hWnd);
-
-// ----------------- Tray -----------------
-
-BOOL InitTrayWnd(const HWND& hWnd) {
+BOOL TrayHeader::InitTrayWnd(HWND const &hWnd, const char* className) {
     ZeroMemory(&nid, sizeof(nid));
     nid.cbSize = sizeof(nid);
     nid.hWnd = hWnd;
@@ -31,16 +15,14 @@ BOOL InitTrayWnd(const HWND& hWnd) {
                                  MAKEINTRESOURCE(IDI_SHOW_ICON),
                                  IMAGE_ICON, 96, 96, 0);
 
-    strncpy_s(nid.szTip, CLASS_NAME, ARRAYSIZE(nid.szTip));
+
+    strncpy_s(nid.szTip, className, ARRAYSIZE(nid.szTip));
 
     Shell_NotifyIcon(NIM_ADD, &nid);
     return TRUE;
 }
 
-VOID UpdateTrayIcon(const HWND& hWnd) {
-    LONG_PTR style = GetWindowLongPtr(hWnd, GWL_STYLE);
-    bool curVisibility = style & WS_VISIBLE;
-
+VOID TrayHeader::UpdateTrayIcon(bool curVisibility) {
     if (curVisibility == isVisibility)
         return;
 
@@ -52,4 +34,6 @@ VOID UpdateTrayIcon(const HWND& hWnd) {
     Shell_NotifyIcon(NIM_MODIFY, &nid);
 }
 
-#endif //ICONTOGGLE_TRAYHEADER_H
+TrayHeader::~TrayHeader() {
+    Shell_NotifyIcon(NIM_DELETE, &nid);
+}

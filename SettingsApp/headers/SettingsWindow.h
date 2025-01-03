@@ -13,6 +13,10 @@ public:
 
 private:
     Ui::MainWindow *ui;
+
+private slots:
+    void on_btn_apply_clicked();
+    void on_btn_reset_clicked();
 };
 
 #endif //ICONTOGGLE_SETTINGSWINDOW_H
