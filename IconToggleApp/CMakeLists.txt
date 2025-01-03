@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.29)
 project(IconToggleApp)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_EXE_LINKER_FLAGS "-static")
 
 add_executable(IconToggle
         IconToggleApp.cpp
@@ -18,5 +19,5 @@ target_sources(IconToggle PRIVATE
 
 set_target_properties(IconToggle PROPERTIES
         COMPILE_FLAGS "-Os -s"
-#        LINK_FLAGS "-mwindows -Wl,--gc-sections"
+        LINK_FLAGS "-mwindows -Wl,--gc-sections"
 )

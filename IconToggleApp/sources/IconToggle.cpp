@@ -3,7 +3,6 @@
 #include "TrayHeader.h"
 
 std::shared_ptr<IconToggle> IconToggle::IconToggleInst = nullptr;
-std::once_flag IconToggle::initFlag{};
 
 void IconToggle::InitGeneralHWND(const HINSTANCE &hInstance) {
     WNDCLASS wc = { 0 };
@@ -183,6 +182,14 @@ BOOL IconToggle::IsActiveShortcut() {
     return ListView_GetHotItem(hSysListView) != -1;
 }
 
+BOOL IconToggle::IsRenamingShortcut() {
+    HWND hShellView = FindShellViewWindow();
+    HWND hSysListView = GetWindow(hShellView, GW_CHILD);
+
+    return ListView_GetEditControl(hSysListView) != nullptr;
+}
+
+
 BOOL IconToggle::IsDesktop(HWND const &hWnd) {
     HWND hShellView = FindShellViewWindow();
     HWND hSysListView = GetWindow(hShellView, GW_CHILD);
@@ -256,7 +263,7 @@ VOID IconToggle::AutoShowIcon() {
 }
 
 VOID IconToggle::StartTimerAutoHide() {
-    if (timerActivated || !TIMER_INTERVAL_AUTO_HIDE || !IsVisible())
+    if (timerActivated || !TIMER_INTERVAL_AUTO_HIDE || !IsVisible() || IsRenamingShortcut())
         return;
 
     SetTimer(GeneralHWnd, GetTimerID(TimerType::TIMER_AUTO_HIDE_ID), TIMER_INTERVAL_AUTO_HIDE, NULL);
@@ -283,4 +290,3 @@ BOOL IconToggle::IsVisible() {
 
     return style & WS_VISIBLE;
 }
-

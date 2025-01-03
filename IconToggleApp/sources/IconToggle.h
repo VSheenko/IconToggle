@@ -5,7 +5,6 @@
 #include <commctrl.h>
 #include "TrayHeader.h"
 #include <memory>
-#include <mutex>
 
 class IconToggle {
 private:
@@ -30,7 +29,6 @@ private:
     char CLASS_NAME[11] = "IconToggle";
 
     static std::shared_ptr<IconToggle> IconToggleInst;
-    static std::once_flag initFlag;
 
     std::shared_ptr<TrayHeader> trayHeader;
 public:
@@ -50,14 +48,16 @@ private:
     VOID DoubleClickHandler();
 
     HWND FindShellViewWindow();
+
     VOID AutoHideIcon();
-
     VOID AutoShowIcon();
-    VOID StartTimerAutoHide();
 
+    VOID StartTimerAutoHide();
     VOID StopTimerAutoHide();
+
     BOOL IsClearDesktop();
     BOOL IsActiveShortcut();
+    BOOL IsRenamingShortcut();
     BOOL IsDesktop(const HWND& hWnd);
 
     BOOL IsVisible();
