@@ -35,30 +35,15 @@ LRESULT CALLBACK IconToggle::WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
     switch (msg) {
         case TrayHeader::WM_TRAY_WND:
             if (lparam == WM_RBUTTONUP || lparam == WM_LBUTTONUP) {
-                HMENU hMenu = CreatePopupMenu();
-                AppendMenu(hMenu, MF_STRING, TrayHeader::ID_TRAY_SETTINGS, "Show Settings");
-                AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
-                AppendMenu(hMenu, MF_STRING, TrayHeader::ID_TRAY_EXIT, "Exit");
-
-                POINT pt;
-                GetCursorPos(&pt);
-                SetForegroundWindow(hwnd);
-                TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hwnd, NULL);
-                DestroyMenu(hMenu);
+                trayHeader->DisplayTrayMenu(hwnd);
             }
             break;
 
         case WM_COMMAND:
-            switch (LOWORD(wparam)) {
-                case TrayHeader::ID_TRAY_SETTINGS:
-                    MessageBox(hwnd, "This is a Settings", "Settings", MB_OK);
-                    break;
-                case TrayHeader::ID_TRAY_EXIT:
-                    EXIT();
-                    break;
-            }
-            break;
+            if (trayHeader->HandlerTrayMenu(hwnd, wparam))
+                break;
 
+            break;
         case WM_TIMER:
             if (wparam == GetTimerID(TimerType::GENERAL_TIMER_ID)) {
                 trayHeader->UpdateTrayIcon(IsVisible());
@@ -288,7 +273,7 @@ VOID IconToggle::EXIT() {
 
 BOOL IconToggle::IsVisible() {
     HWND hShellView = FindShellViewWindow();
-    LONG_PTR style = GetWindowLongPtr(GetWindow(FindShellViewWindow(), GW_CHILD), GWL_STYLE);
+    LONG_PTR style = GetWindowLongPtr(GetWindow(hShellView, GW_CHILD), GWL_STYLE);
 
     return style & WS_VISIBLE;
 }
