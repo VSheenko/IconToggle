@@ -1,6 +1,6 @@
 #include <iostream>
 #include "IconToggle.h"
-#include "TrayHeader.h"
+#include "TrayWin/TrayHeader.h"
 
 std::shared_ptr<IconToggle> IconToggle::IconToggleInst = nullptr;
 
@@ -61,7 +61,7 @@ LRESULT CALLBACK IconToggle::WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM 
 
         case WM_TIMER:
             if (wparam == GetTimerID(TimerType::GENERAL_TIMER_ID)) {
-                trayHeader->UpdateTrayIcon(GetWindow(FindShellViewWindow(), GW_CHILD));
+                trayHeader->UpdateTrayIcon(IsVisible());
 
                 if (IsClearDesktop() && !IsActiveShortcut())
                     StartTimerAutoHide();
@@ -132,7 +132,7 @@ VOID IconToggle::DoubleClickHandler() {
     autoHided = false;
 
     SendMessage(FindShellViewWindow(), WM_COMMAND, MAKEWPARAM(29698, 0), NULL);
-    trayHeader->UpdateTrayIcon(GetWindow(FindShellViewWindow(), GW_CHILD));
+    trayHeader->UpdateTrayIcon(IsVisible());
 }
 
 BOOL IconToggle::IsClearDesktop() {
@@ -247,6 +247,7 @@ VOID IconToggle::AutoHideIcon() {
 
     if (curVisibility) {
         SendMessage(hShellView, WM_COMMAND, MAKEWPARAM(29698, 0), NULL);
+        trayHeader->UpdateTrayIcon(false);
         autoHided = true;
     }
 }
@@ -257,7 +258,8 @@ VOID IconToggle::AutoShowIcon() {
     bool curVisibility = style & WS_VISIBLE;
 
     if (!curVisibility && autoHided) {
-        SendMessage(hShellView, WM_COMMAND, MAKEWPARAM(29698, 0), NULL);
+        SendMessage(hShellView, WM_COMMAND, MAKEWPARAM(29698, 0), NULL);\
+        trayHeader->UpdateTrayIcon(true);
         autoHided = false;
     }
 }

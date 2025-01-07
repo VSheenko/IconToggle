@@ -3,7 +3,7 @@
 
 #include <windows.h>
 #include <commctrl.h>
-#include "TrayHeader.h"
+#include "TrayWin/TrayHeader.h"
 #include <memory>
 
 class IconToggle {

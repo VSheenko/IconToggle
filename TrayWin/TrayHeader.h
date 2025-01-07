@@ -1,7 +1,7 @@
 #ifndef ICONTOGGLE_TRAYHEADER_H
 #define ICONTOGGLE_TRAYHEADER_H
 
-#include "../resources/resource.h"
+#include "resources/resource.h"
 #include <windows.h>
 
 

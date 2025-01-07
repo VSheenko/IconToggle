@@ -1,6 +1,6 @@
 #include <iostream>
-#include "sources/IconToggle.h"
-#include "sources/TrayHeader.h"
+#include "IconToggleApp/IconToggle.h"
+#include "TrayWIn/TrayHeader.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     try {
