@@ -2,6 +2,7 @@
 #define ICONTOGGLE_TRAYHEADER_H
 
 #include "resources/resource.h"
+#include "ConfigManager/ConfigManager.h"
 #include <windows.h>
 
 
@@ -13,9 +14,8 @@ private:
     HMENU hMenu = nullptr;
     HMENU hSubMenu = nullptr;
 
-    bool isLBM = true;
-    bool isShortcut = false;
-
+    std::string CONFIG_PATH = "config.bin";
+    std::shared_ptr<ConfigManager> configManager;
 public:
     static constexpr UINT WM_TRAY_WND = (WM_USER + 1);
     static constexpr UINT ID_TRAY_APP_ICON = 1001;
@@ -26,6 +26,7 @@ public:
     static constexpr UINT ID_BTN_SET_TIMER = 2005;
     static constexpr UINT ID_BTN_ABOUT = 2006;
     static constexpr UINT ID_LINK_GITHUB = 2007;
+    static constexpr UINT ID_BTN_STARTUP = 2008;
 
 
 private:

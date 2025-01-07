@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include "TrayWin/TrayHeader.h"
-#include <memory>
+#include "ConfigManager/ConfigManager.h"
 
 class IconToggle {
 private:
@@ -18,7 +18,6 @@ private:
     bool autoHided = false;
 
     HWND GeneralHWnd;
-    int  TIMER_INTERVAL_AUTO_HIDE = 5000;
     int  CHECK_INTERVAL = 1000;
 
     HHOOK hHook = nullptr;
@@ -26,11 +25,12 @@ private:
     DWORD lastDoubleClickTime = 0;
     POINT lastPoint = {0};
 
-    char CLASS_NAME[11] = "IconToggle";
+    const char CLASS_NAME[11] = "IconToggle";
+    const std::string CONFIG_PATH = "config.bin";
 
     static std::shared_ptr<IconToggle> IconToggleInst;
-
     std::shared_ptr<TrayHeader> trayHeader;
+    std::shared_ptr<ConfigManager> configManager;
 public:
     constexpr static int WIDTH_DISPLAY_INTERVAL = 100;
     constexpr static int HEIGHT_DISPLAY_INTERVAL = 50;

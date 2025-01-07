@@ -1,6 +1,6 @@
 #include <iostream>
 #include "IconToggleApp/IconToggle.h"
-#include "TrayWIn/TrayHeader.h"
+#include "ConfigManager/ConfigManager.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
     try {
@@ -8,6 +8,4 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
     }
-
-    return 0;
 }

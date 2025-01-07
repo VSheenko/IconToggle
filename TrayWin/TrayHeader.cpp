@@ -1,6 +1,9 @@
 #include "TrayHeader.h"
 
 TrayHeader::TrayHeader(HWND const &hWnd, const char* className) {
+    configManager = ConfigManager::Instance(CONFIG_PATH);
+    configManager->Deserialization();
+
     InitTrayWnd(hWnd, className);
 }
 
@@ -56,6 +59,7 @@ VOID TrayHeader::CreateTrayMenu() {
 
     AppendMenu(hMenu, MF_STRING, TrayHeader::ID_BTN_SET_SHORTCUT, "Set Shortcut");
     AppendMenu(hMenu, MF_STRING, TrayHeader::ID_BTN_SET_TIMER, "Set auto hide timer");
+    AppendMenu(hMenu, MF_STRING, TrayHeader::ID_BTN_STARTUP, "Set on startup");
 
     AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
 
@@ -99,10 +103,16 @@ BOOL TrayHeader::HandlerTrayMenu(HWND const &hWnd, const WPARAM &wParam) {
 
 VOID TrayHeader::UpdateCheckBoxBtn(UINT id) {
     if (id == TrayHeader::ID_CHECKBOX_LBM) {
-        isLBM = !isLBM;
-        CheckMenuItem(hMenu, TrayHeader::ID_CHECKBOX_LBM, MF_BYCOMMAND | (isLBM ? MF_CHECKED : MF_UNCHECKED));
+        configManager->isLBM = !configManager->isLBM;
+        CheckMenuItem(hMenu, TrayHeader::ID_CHECKBOX_LBM, MF_BYCOMMAND | (configManager->isLBM ? MF_CHECKED : MF_UNCHECKED));
     } else {
-        isShortcut = !isShortcut;
-        CheckMenuItem(hMenu, TrayHeader::ID_CHECKBOX_SHORTCUT, MF_BYCOMMAND | (isShortcut ? MF_CHECKED : MF_UNCHECKED));
+        configManager->isShortcut = !configManager->isShortcut;
+        CheckMenuItem(hMenu, TrayHeader::ID_CHECKBOX_SHORTCUT, MF_BYCOMMAND | (configManager->isShortcut ? MF_CHECKED : MF_UNCHECKED));
     }
+
+    configManager->Serialization();
+}
+
+BOOL TrayHeader::CheckStartup() {
+    return FALSE;
 }

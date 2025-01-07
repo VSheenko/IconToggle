@@ -31,7 +31,7 @@ bool ConfigManager::Deserialization() {
 
 std::shared_ptr<ConfigManager> ConfigManager::Instance(const std::string &configPath) {
     if (!FileExist(configPath))
-        return nullptr;
+        throw std::runtime_error("Config file does not exist");
 
     if (instances.find(configPath) != instances.end())
         return instances[configPath];
