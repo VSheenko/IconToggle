@@ -11,6 +11,8 @@ add_executable(IconToggle
         IconToggleApp/IconToggle.h
         TrayWin/TrayHeader.cpp
         TrayWin/TrayHeader.h
+        ConfigManager/ConfigManager.cpp
+        ConfigManager/ConfigManager.h
         resources/resource.h
 )
 
