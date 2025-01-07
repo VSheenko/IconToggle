@@ -112,7 +112,3 @@ VOID TrayHeader::UpdateCheckBoxBtn(UINT id) {
 
     configManager->Serialization();
 }
-
-BOOL TrayHeader::CheckStartup() {
-    return FALSE;
-}
