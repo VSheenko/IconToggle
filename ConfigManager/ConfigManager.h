@@ -9,21 +9,21 @@
 
 class ConfigManager {
 private:
-    static std::unordered_map<std::string, std::shared_ptr<ConfigManager>> instances;
+    static std::shared_ptr<ConfigManager> instance;
     std::string configPath;
 
     static VOID InitDefaultConfig(const std::string &configPath);
-
 public:
-    unsigned char keys[3];
-    unsigned short autoHideTime;
-    bool isLBM;
-    bool isShortcut;
 
+    unsigned char keys[3]{};
+    unsigned short autoHideTime{};
+    bool isLBM{};
+    bool isShortcut{};
 public:
     static bool FileExist(const std::string& path);
     explicit ConfigManager(const std::string& configPath);
     static std::shared_ptr<ConfigManager> Instance(const std::string& configPath);
+    static std::shared_ptr<ConfigManager> Instance();
 
     bool Serialization();
     bool Deserialization();

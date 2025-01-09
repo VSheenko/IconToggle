@@ -15,7 +15,6 @@ private:
     HMENU hSubMenu = nullptr;
 
     std::string CONFIG_PATH = "config.bin";
-    std::shared_ptr<ConfigManager> configManager;
 public:
     static constexpr UINT WM_TRAY_WND = (WM_USER + 1);
     static constexpr UINT ID_TRAY_APP_ICON = 1001;
@@ -52,7 +51,8 @@ public:
     BOOL HandlerTrayMenu(const HWND& hWnd, const WPARAM& wParam);
 
     VOID CreateSetTimerDialog(HINSTANCE hInstance, HWND parentHwnd);
-    VOID static SetTimerWndInit(const HWND &hwnd, HWND& editHwnd);
+    static VOID SetTimerWndInit(const HWND &hwnd, HWND& editHwnd);
+    static BOOL CheckValidTime(const std::string& time);
 
     VOID UpdateTrayIcon(bool curVisibility);
 };

@@ -1,6 +1,6 @@
 #include "ConfigManager.h"
 
-std::unordered_map<std::string, std::shared_ptr<ConfigManager>> ConfigManager::instances;
+std::shared_ptr<ConfigManager> ConfigManager::instance = nullptr;
 
 bool ConfigManager::Serialization() {
     std::ofstream file(configPath, std::ios::binary);
@@ -37,14 +37,14 @@ std::shared_ptr<ConfigManager> ConfigManager::Instance(const std::string &config
         MessageBoxA(NULL, "Created default config", "Error", MB_OK);
     }
 
-    if (instances.find(configPath) != instances.end())
-        return instances[configPath];
+    if (instance == nullptr)
+        instance = std::make_shared<ConfigManager>(configPath);
 
-    instances[configPath] = std::make_shared<ConfigManager>(configPath);
-    return instances[configPath];
+    instance->Deserialization();
+    return instance;
 }
 
-ConfigManager::ConfigManager(const std::string &configPath) : configPath(configPath) {}
+ConfigManager::ConfigManager(const std::string& configPath) : configPath(configPath) {}
 
 bool ConfigManager::FileExist(const std::string &path) {
     DWORD fileAttributes = GetFileAttributesA(path.c_str());
@@ -66,5 +66,14 @@ VOID ConfigManager::InitDefaultConfig(const std::string &configPath) {
      defaultConfig->autoHideTime = 5000;
 
     defaultConfig->Serialization();
-    instances[configPath] = defaultConfig;
+    instance = defaultConfig;
+}
+
+std::shared_ptr<ConfigManager> ConfigManager::Instance() {
+    if (instance == nullptr) {
+        MessageBox(NULL, "ConfigManager instance is not created", "Error", MB_OK);
+        throw std::runtime_error("ConfigManager instance is not created");
+    }
+
+    return instance;
 }

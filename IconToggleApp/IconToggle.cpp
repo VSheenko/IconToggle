@@ -91,7 +91,6 @@ std::shared_ptr<IconToggle> IconToggle::GetIconToggleInst() {
 
 IconToggle::IconToggle(HINSTANCE const &hInstance) {
     IconToggleInst = std::shared_ptr<IconToggle>(this);
-    configManager = ConfigManager::Instance(CONFIG_PATH);
 
     InitGeneralHWND(hInstance);
     trayHeader = std::make_shared<TrayHeader>(GeneralHWnd, CLASS_NAME);
@@ -115,7 +114,7 @@ IconToggle::IconToggle(HINSTANCE const &hInstance) {
 }
 
 VOID IconToggle::DoubleClickHandler() {
-    if (!configManager->isLBM)
+    if (!ConfigManager::Instance()->isLBM)
         return;
 
     autoHided = false;
@@ -254,10 +253,10 @@ VOID IconToggle::AutoShowIcon() {
 }
 
 VOID IconToggle::StartTimerAutoHide() {
-    if (timerActivated || !configManager->autoHideTime || !IsVisible() || IsRenamingShortcut())
+    if (timerActivated || !ConfigManager::Instance()->autoHideTime || !IsVisible() || IsRenamingShortcut())
         return;
 
-    SetTimer(GeneralHWnd, GetTimerID(TimerType::TIMER_AUTO_HIDE_ID), configManager->autoHideTime, NULL);
+    SetTimer(GeneralHWnd, GetTimerID(TimerType::TIMER_AUTO_HIDE_ID), ConfigManager::Instance()->autoHideTime * 1000, NULL);
     timerActivated = true;
 }
 

@@ -30,7 +30,6 @@ private:
 
     static std::shared_ptr<IconToggle> IconToggleInst;
     std::shared_ptr<TrayHeader> trayHeader;
-    std::shared_ptr<ConfigManager> configManager;
 public:
     constexpr static int WIDTH_DISPLAY_INTERVAL = 100;
     constexpr static int HEIGHT_DISPLAY_INTERVAL = 50;

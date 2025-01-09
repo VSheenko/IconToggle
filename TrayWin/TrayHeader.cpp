@@ -1,9 +1,6 @@
 #include "TrayHeader.h"
 
 TrayHeader::TrayHeader(HWND const &hWnd, const char* className) {
-    configManager = ConfigManager::Instance(CONFIG_PATH);
-    configManager->Deserialization();
-
     InitTrayWnd(hWnd, className);
 }
 
@@ -52,8 +49,8 @@ VOID TrayHeader::CreateTrayMenu() {
     hMenu = CreatePopupMenu();
     hSubMenu = CreatePopupMenu();
 
-    AppendMenu(hMenu, MF_BYCOMMAND  | MF_CHECKED, TrayHeader::ID_CHECKBOX_LBM, "LBM to Show/Hide");
-    AppendMenu(hMenu, MF_BYCOMMAND  | MF_UNCHECKED, TrayHeader::ID_CHECKBOX_SHORTCUT, "Shortcut to Show/Hide");
+    AppendMenu(hMenu, MF_BYCOMMAND | (ConfigManager::Instance()->isLBM ? MF_CHECKED : MF_UNCHECKED), TrayHeader::ID_CHECKBOX_LBM, "LBM to Show/Hide");
+    AppendMenu(hMenu, MF_BYCOMMAND | (ConfigManager::Instance()->isShortcut ? MF_CHECKED : MF_UNCHECKED), TrayHeader::ID_CHECKBOX_SHORTCUT, "Shortcut to Show/Hide");
 
     AppendMenu(hMenu, MF_SEPARATOR, 0, NULL);
 
@@ -103,14 +100,14 @@ BOOL TrayHeader::HandlerTrayMenu(HWND const &hWnd, const WPARAM &wParam) {
 
 VOID TrayHeader::UpdateCheckBoxBtn(UINT id) {
     if (id == TrayHeader::ID_CHECKBOX_LBM) {
-        configManager->isLBM = !configManager->isLBM;
-        CheckMenuItem(hMenu, TrayHeader::ID_CHECKBOX_LBM, MF_BYCOMMAND | (configManager->isLBM ? MF_CHECKED : MF_UNCHECKED));
+        ConfigManager::Instance()->isLBM = !ConfigManager::Instance()->isLBM;
+        CheckMenuItem(hMenu, TrayHeader::ID_CHECKBOX_LBM, MF_BYCOMMAND | (ConfigManager::Instance()->isLBM ? MF_CHECKED : MF_UNCHECKED));
     } else {
-        configManager->isShortcut = !configManager->isShortcut;
-        CheckMenuItem(hMenu, TrayHeader::ID_CHECKBOX_SHORTCUT, MF_BYCOMMAND | (configManager->isShortcut ? MF_CHECKED : MF_UNCHECKED));
+        ConfigManager::Instance()->isShortcut = !ConfigManager::Instance()->isShortcut;
+        CheckMenuItem(hMenu, TrayHeader::ID_CHECKBOX_SHORTCUT, MF_BYCOMMAND | (ConfigManager::Instance()->isShortcut ? MF_CHECKED : MF_UNCHECKED));
     }
 
-    configManager->Serialization();
+    ConfigManager::Instance()->Serialization();
 }
 
 VOID TrayHeader::CreateSetTimerDialog(HINSTANCE hInstance, HWND parentHwnd) {
@@ -122,6 +119,7 @@ VOID TrayHeader::CreateSetTimerDialog(HINSTANCE hInstance, HWND parentHwnd) {
         wc.lpfnWndProc = WndTimerProc;
         wc.hInstance = hInstance;
         wc.lpszClassName = INPUT_CLASS_NAME;
+        wc.hIcon = (HICON)LoadImage(hInstance, MAKEINTRESOURCE(IDI_SHOW_ICON), IMAGE_ICON, 32, 32, 0);
 
         RegisterClass(&wc);
         isRegistered = true;
@@ -132,7 +130,7 @@ VOID TrayHeader::CreateSetTimerDialog(HINSTANCE hInstance, HWND parentHwnd) {
             INPUT_CLASS_NAME,
             "Timer setting",
             WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
-            CW_USEDEFAULT, CW_USEDEFAULT, 300, 150,
+            CW_USEDEFAULT, CW_USEDEFAULT, 320, 170,
             parentHwnd,
             nullptr,
             hInstance,
@@ -158,6 +156,26 @@ LRESULT CALLBACK TrayHeader::WndTimerProc(HWND hwnd, UINT msg, WPARAM wparam, LP
             DestroyWindow(hwnd);
             break;
         case WM_COMMAND:
+            switch (LOWORD(wparam)) {
+                case ID_BTN_SETTER_TIMER_OK: {
+                    char time[10];
+                    GetWindowText(editHwnd, time, 32);
+
+                    if (!CheckValidTime(time)) {
+                        MessageBox(hwnd, "Invalid time", "Error", MB_OK | MB_ICONERROR);
+                        break;
+                    }
+
+                    ConfigManager::Instance()->autoHideTime = std::stoi(time);
+                    ConfigManager::Instance()->Serialization();
+
+                    DestroyWindow(hwnd);
+                }
+                    break;
+                case ID_BTN_SETTER_TIMER_CANCEL:
+                    DestroyWindow(hwnd);
+                    break;
+            }
             break;
         default:
             return DefWindowProc(hwnd, msg, wparam, lparam);
@@ -180,32 +198,53 @@ VOID TrayHeader::SetTimerWndInit(HWND const &hwnd, HWND& editHwnd) {
     SetWindowPos(hwnd, NULL, x, y, 0, 0, SWP_NOSIZE);
 
     CreateWindowEx(
-            0, "STATIC", "TEST",
+            0, "STATIC", "The auto-hide timer for shortcuts is set in seconds. Enter 0 to disable it. Maximum time is 86,400 seconds (24 hours)",
             WS_CHILD | WS_VISIBLE | SS_LEFT,
-            10, 10, 260, 20,
+            10, 10, 300, 50,
             hwnd, nullptr, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), nullptr
     );
 
     editHwnd = CreateWindowEx(
             0, "EDIT", nullptr,
             WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
-            10, 40, 260, 20,
+            20, 70, 260, 20,
             hwnd, nullptr, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), nullptr
     );
+    SetWindowText(editHwnd, std::to_string(ConfigManager::Instance()->autoHideTime).c_str());
 
     CreateWindowEx(
             0, "BUTTON", "OK",
             WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | WS_BORDER,
-            100, 80, 80, 30,
+            120, 100, 80, 30,
             hwnd, (HMENU)ID_BTN_SETTER_TIMER_OK, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), nullptr
     );
 
     CreateWindowEx(
             0, "BUTTON", "Cancel",
             WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | WS_BORDER,
-            190, 80, 80, 30,
+            210, 100, 80, 30,
             hwnd, (HMENU)ID_BTN_SETTER_TIMER_CANCEL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), nullptr
     );
 
     SendMessage(hwnd, WM_UPDATEUISTATE, MAKEWPARAM(UIS_SET, UISF_HIDEFOCUS), 0);
+}
+
+BOOL TrayHeader::CheckValidTime(const std::string& time) {
+    if (time.empty())
+        return false;
+
+    for (char c : time) {
+        if (!isdigit(c))
+            return false;
+    }
+
+    try {
+        unsigned int timeInt = std::stoi(time);
+        if (timeInt > 86400)
+            return false;
+    } catch (std::exception& e) {
+        return false;
+    }
+
+    return true;
 }
