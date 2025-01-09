@@ -19,19 +19,29 @@ private:
 public:
     static constexpr UINT WM_TRAY_WND = (WM_USER + 1);
     static constexpr UINT ID_TRAY_APP_ICON = 1001;
-    static constexpr UINT ID_TRAY_EXIT = 2001;
-    static constexpr UINT ID_CHECKBOX_LBM = 2002;
-    static constexpr UINT ID_CHECKBOX_SHORTCUT = 2003;
-    static constexpr UINT ID_BTN_SET_SHORTCUT = 2004;
-    static constexpr UINT ID_BTN_SET_TIMER = 2005;
-    static constexpr UINT ID_BTN_ABOUT = 2006;
-    static constexpr UINT ID_LINK_GITHUB = 2007;
-    static constexpr UINT ID_BTN_STARTUP = 2008;
+
+    enum TrayID : UINT {
+        ID_TRAY_EXIT = 2001,
+        ID_CHECKBOX_LBM,
+        ID_CHECKBOX_SHORTCUT,
+        ID_BTN_SET_SHORTCUT,
+        ID_BTN_SET_TIMER,
+        ID_BTN_ABOUT,
+        ID_LINK_GITHUB,
+        ID_BTN_STARTUP,
+    };
+
+    enum SetTimerDialogID : UINT {
+        ID_BTN_SETTER_TIMER_OK = 3001,
+        ID_BTN_SETTER_TIMER_CANCEL,
+    };
 
 
 private:
     BOOL InitTrayWnd(const HWND& hWnd, const char* className);
     VOID UpdateCheckBoxBtn(UINT id);
+
+    static LRESULT CALLBACK WndTimerProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 public:
     explicit TrayHeader(const HWND& hWnd, const char* className);
@@ -40,6 +50,9 @@ public:
     VOID CreateTrayMenu();
     VOID DisplayTrayMenu(HWND& hWnd);
     BOOL HandlerTrayMenu(const HWND& hWnd, const WPARAM& wParam);
+
+    VOID CreateSetTimerDialog(HINSTANCE hInstance, HWND parentHwnd);
+    VOID static SetTimerWndInit(const HWND &hwnd, HWND& editHwnd);
 
     VOID UpdateTrayIcon(bool curVisibility);
 };

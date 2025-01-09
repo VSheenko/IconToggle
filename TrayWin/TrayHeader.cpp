@@ -92,7 +92,7 @@ BOOL TrayHeader::HandlerTrayMenu(HWND const &hWnd, const WPARAM &wParam) {
             // TODO: Create a dialog for setting a shortcut
             return TRUE;
         case ID_BTN_SET_TIMER:
-            // TODO: Create a dialog for setting a timer
+            CreateSetTimerDialog((HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE), hWnd);
             return TRUE;
         case ID_LINK_GITHUB:
             ShellExecute(NULL, "open", "https://github.com/VSheenko/", NULL, NULL, SW_SHOWNORMAL);
@@ -111,4 +111,101 @@ VOID TrayHeader::UpdateCheckBoxBtn(UINT id) {
     }
 
     configManager->Serialization();
+}
+
+VOID TrayHeader::CreateSetTimerDialog(HINSTANCE hInstance, HWND parentHwnd) {
+    const char INPUT_CLASS_NAME[] = "InputWindowClass";
+
+    static bool isRegistered = false;
+    if (!isRegistered) {
+        WNDCLASS wc = {};
+        wc.lpfnWndProc = WndTimerProc;
+        wc.hInstance = hInstance;
+        wc.lpszClassName = INPUT_CLASS_NAME;
+
+        RegisterClass(&wc);
+        isRegistered = true;
+    }
+
+    HWND inputHwnd = CreateWindowEx(
+            0,
+            INPUT_CLASS_NAME,
+            "Timer setting",
+            WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
+            CW_USEDEFAULT, CW_USEDEFAULT, 300, 150,
+            parentHwnd,
+            nullptr,
+            hInstance,
+            nullptr
+    );
+    SetWindowLong(inputHwnd, GWL_EXSTYLE, GetWindowLong(inputHwnd, GWL_EXSTYLE) | WS_EX_APPWINDOW);
+
+    if (inputHwnd) {
+        ShowWindow(inputHwnd, SW_SHOW);
+    }
+}
+
+LRESULT CALLBACK TrayHeader::WndTimerProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+    static HWND editHwnd;
+
+    switch (msg) {
+        case WM_CREATE:
+            SetTimerWndInit(hwnd, editHwnd);
+            break;
+        case WM_DESTROY:
+            break;
+        case WM_CLOSE:
+            DestroyWindow(hwnd);
+            break;
+        case WM_COMMAND:
+            break;
+        default:
+            return DefWindowProc(hwnd, msg, wparam, lparam);
+    }
+    return 0;
+}
+
+VOID TrayHeader::SetTimerWndInit(HWND const &hwnd, HWND& editHwnd) {
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+    int width = rc.right - rc.left;
+    int height = rc.bottom - rc.top;
+
+    int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+    int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+
+    int x = (screenWidth - width) / 2;
+    int y = (screenHeight - height) / 2;
+
+    SetWindowPos(hwnd, NULL, x, y, 0, 0, SWP_NOSIZE);
+
+    CreateWindowEx(
+            0, "STATIC", "TEST",
+            WS_CHILD | WS_VISIBLE | SS_LEFT,
+            10, 10, 260, 20,
+            hwnd, nullptr, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), nullptr
+    );
+
+    editHwnd = CreateWindowEx(
+            0, "EDIT", nullptr,
+            WS_CHILD | WS_VISIBLE | WS_BORDER | ES_LEFT,
+            10, 40, 260, 20,
+            hwnd, nullptr, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), nullptr
+    );
+
+    CreateWindowEx(
+            0, "BUTTON", "OK",
+            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | WS_BORDER,
+            100, 80, 80, 30,
+            hwnd, (HMENU)ID_BTN_SETTER_TIMER_OK, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), nullptr
+    );
+
+    CreateWindowEx(
+            0, "BUTTON", "Cancel",
+            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | WS_BORDER,
+            190, 80, 80, 30,
+            hwnd, (HMENU)ID_BTN_SETTER_TIMER_CANCEL, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), nullptr
+    );
+
+    SendMessage(hwnd, WM_UPDATEUISTATE, MAKEWPARAM(UIS_SET, UISF_HIDEFOCUS), 0);
 }
