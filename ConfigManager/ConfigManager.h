@@ -12,6 +12,8 @@ private:
     static std::unordered_map<std::string, std::shared_ptr<ConfigManager>> instances;
     std::string configPath;
 
+    static VOID InitDefaultConfig(const std::string &configPath);
+
 public:
     unsigned char keys[3];
     unsigned short autoHideTime;
